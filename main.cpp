@@ -1,6 +1,7 @@
 #include <print>
-
+#include <Polygon.hpp>
 int main(int argc, char *argv[]) {
-  std::print("Hello");
+  LF::Primitives::Polygon lf;
+
   return 0;
 }
