@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <memory>
-#include <vector>
+#include <optional>
 
 namespace LF::Primitives {
 class Polygon {
@@ -20,7 +20,12 @@ public:
   Polygon(const Polygon &) = delete;
   Polygon &operator=(const Polygon &) = delete;
 
-  const double &area() const;
+  const std::optional<double> area() const;
+  bool add(const Point2D &p);
+  bool remove(std::size_t idx);
+  bool update(std::size_t idx, const Point2D &p);
+  void freeze();
+  void unfreeze();
 
 private:
   struct Impl;

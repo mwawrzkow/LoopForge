@@ -1,11 +1,11 @@
-project(Primitives)
+project(HydronicFloorEngine)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(CGAL REQUIRED)
 
-set(SRC src/Primitives/Polygon.cpp)
+set(SRC src/HydronicFloorEngine/Room.cpp)
 
 add_library(${PROJECT_NAME} ${SRC})
 
@@ -17,5 +17,5 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    CGAL::CGAL
+  Primitives
 )

@@ -1,10 +1,11 @@
-#include "Polygon.hpp"
-#include "Point.hpp"
+#include "Primitives/Polygon.hpp"
+#include "Primitives/Point.hpp"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Polygon_2.h>
 #include <cstddef>
 #include <initializer_list>
 #include <memory>
+#include <optional>
 #include <ranges>
 #include <vector>
 
@@ -20,15 +21,23 @@ struct Polygon::Impl {
   Impl(std::initializer_list<Point2D> data) : points(data) {}
   Impl(std::size_t reserve) { points.reserve(reserve); }
 
+  bool remove(std::size_t idx) {
+    if (frozen())
+      return false;
+    if (idx >= points.size())
+      return false;
+    points.erase(points.begin() + idx);
+    return true;
+  }
   bool add(const Point2D &p) {
-    if (locked())
+    if (frozen())
       return false;
     points.push_back(p);
     return true;
   }
 
   bool update(std::size_t idx, const Point2D &p) {
-    if (locked())
+    if (frozen())
       return false;
     if (idx >= points.size())
       return false;
@@ -36,9 +45,9 @@ struct Polygon::Impl {
     return true;
   }
   std::size_t size() const { return points.size(); }
-  bool locked() const { return polygon.get(); }
-  void lock() {
-    if (locked())
+  bool frozen() const { return polygon.get(); }
+  void freeze() {
+    if (frozen())
       return;
 
     auto cgal_points = points | std::views::transform([](const Point2D &p) {
@@ -49,7 +58,12 @@ struct Polygon::Impl {
         std::make_unique<CGALPolygon>(cgal_points.begin(), cgal_points.end());
   }
 
-  void release() { polygon.reset(); }
+  void unfreeze() { polygon.reset(); }
+  std::optional<double> area() const {
+    if (!frozen())
+      return std::nullopt;
+    return std::abs(polygon->area());
+  }
 };
 
 Polygon::Polygon() : impl_(std::make_unique<Impl>()) {}
@@ -61,3 +75,13 @@ Polygon::Polygon(std::initializer_list<Point2D> points)
 
 Polygon::Polygon(Polygon &&) noexcept = default;
 Polygon &Polygon::operator=(Polygon &&) noexcept = default;
+
+const std::optional<double> Polygon::area() const { return impl_->area(); }
+
+bool Polygon::add(const Point2D &p) { return impl_->add(p); }
+bool Polygon::remove(std::size_t idx) { return impl_->remove(idx); }
+bool Polygon::update(std::size_t idx, const Point2D &p) {
+  return impl_->update(idx, p);
+}
+void Polygon::freeze() { impl_->freeze(); }
+void Polygon::unfreeze() { impl_->unfreeze(); }
